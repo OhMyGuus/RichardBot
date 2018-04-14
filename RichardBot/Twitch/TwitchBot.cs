@@ -84,15 +84,17 @@ namespace RichardBot.Twitch
                     }
                 default:
                     {
+                        //Need to move stuff around to make this less italian
                         if (!botEveningTimeout.ContainsKey(message.UserId) || (botEveningTimeout[message.UserId] - DateTime.Now).TotalMinutes > config.EveningTimeout)
                         {
-                            botEveningTimeout[message.UserId] = DateTime.Now;
                             if (message.Message.ToLower().Contains("avond"))
                             {
+                                botEveningTimeout[message.UserId] = DateTime.Now;
                                 client.SendMessage(message.Channel, $"/me Avond @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
                             }
                             else if (message.Message.ToLower().Contains("middag"))
                             {
+                                botEveningTimeout[message.UserId] = DateTime.Now;
                                 client.SendMessage(message.Channel, $"/me Middag @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
                             }
                         }
@@ -181,6 +183,11 @@ namespace RichardBot.Twitch
         {
             //    client.ChatThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
             Console.WriteLine("Connected to twitch");
+            foreach (var channel in config.JoinedChannels)
+            {
+                Console.WriteLine($"Joining {channel}");
+                client.JoinChannel(channel);
+            }
         }
         #endregion
     }
