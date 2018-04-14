@@ -85,7 +85,7 @@ namespace RichardBot.Twitch
                 default:
                     {
                         //Need to move stuff around to make this less italian
-                        if (!botEveningTimeout.ContainsKey(message.UserId) || (botEveningTimeout[message.UserId] - DateTime.Now).TotalMinutes > config.EveningTimeout)
+                        if (!botEveningTimeout.ContainsKey(message.UserId) || (DateTime.Now - botEveningTimeout[message.UserId]).TotalMinutes > config.EveningTimeout)
                         {
                             if (message.Message.ToLower().Contains("avond"))
                             {

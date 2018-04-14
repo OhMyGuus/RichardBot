@@ -18,7 +18,7 @@ namespace RichardBotService.Job
             try
             {
                 var bot = BotWrapper.TwitchBot;
-                bot.CheckDabs();
+                await bot.CheckDabs();
 
             }
             catch (Exception e)
