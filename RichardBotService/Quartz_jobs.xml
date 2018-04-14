@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This file contains Quartz job definitions in schema version 2.0 format -->
+<!-- Debug versie: runt de factuurgeneratie(s) 5 seconden na het starten van de scheduler. -->
+<!-- Indien een job niet gestart moet worden, maak commentaar van de bijgehorende trigger sectie -->
+
+<job-scheduling-data xmlns="http://quartznet.sourceforge.net/JobSchedulingData" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0">
+
+  <processing-directives>
+    <overwrite-existing-data>true</overwrite-existing-data>
+  </processing-directives>
+
+  <schedule>
+    <job>
+      <name>SendWeatherJob</name>
+      <group>Discord</group>
+      <description>Send weather to all connected channels</description>
+      <job-type>RichardBotService.Job.SendWeatherJob, RichardBotService</job-type>
+      <durable>true</durable>
+      <recover>false</recover>
+    </job>
+    <job>
+      <name>SendDabJob</name>
+      <group>Discord</group>
+      <description>Send a dab to all connected channels</description>
+      <job-type>RichardBotService.Job.SendDabJob, RichardBotService</job-type>
+      <durable>true</durable>
+      <recover>false</recover>
+    </job>
+    <job>
+      <name>TwitchHonor</name>
+      <group>Twitch</group>
+      <description>Send a honor request to all connected channels</description>
+      <job-type>RichardBotService.Job.TwitchHonorJob, RichardBotService</job-type>
+      <durable>true</durable>
+      <recover>false</recover>
+    </job>
+
+    <trigger>
+      <cron>
+        <name>Send the weather evrey day</name>
+        <group>Discord</group>
+        <description>Send weather daily/text</description>
+        <job-name>SendWeatherJob</job-name>
+        <job-group>Discord</job-group>
+        <cron-expression>0 30 7 * * ?</cron-expression>
+      </cron>
+    </trigger>
+    <trigger>
+      <cron>
+        <name>Send dab </name>
+        <group>Discord</group>
+        <description>Send dab sometimes</description>
+        <job-name>SendDabJob</job-name>
+        <job-group>Discord</job-group>
+        <cron-expression>0 0 1 * * ?</cron-expression>
+      </cron>
+    </trigger>
+    <trigger>
+      <cron>
+        <name>Twitch Honor check </name>
+        <group>Twitch</group>
+        <description>Check if the joinedchannels needs to honor Richard</description>
+        <job-name>TwitchHonor</job-name>
+        <job-group>Twitch</job-group>
+        <cron-expression>0 0/1 * * * ?</cron-expression>
+      </cron>
+    </trigger>
+    <trigger>
+      <simple>
+        <name>Start of program bot test </name>
+        <group>Twitch</group>
+        <description>Start of the service test</description>
+        <job-name>TwitchHonor</job-name>
+        <job-group>Twitch</job-group>
+      </simple>
+    </trigger >
+    <trigger>
+      <simple>
+        <name>Start of program bot test weather </name>
+        <group>Discord</group>
+        <description>Start of the service test</description>
+        <job-name>SendWeatherJob</job-name>
+        <job-group>Discord</job-group>
+      </simple>
+    </trigger >
+  </schedule>
+</job-scheduling-data>
