@@ -44,11 +44,11 @@ namespace RichardBot.Discord
                 if (arg.Live)
                 {
                     if (arg.Uptime?.TotalMinutes < 10)
-                        await SendMessageToAllChannels($"Joooo malse makkers, {arg.Channel} is weer LIVE :lekkerSicko: :lekkerSicko: :lekkerRichard:!");
+                        await SendMessageToChannels($"Joooo malse makkers, {arg.Channel} is weer LIVE :lekkerSicko: :lekkerSicko: :lekkerRichard:!");
                 }
                 else
                 {
-                    await SendMessageToAllChannels("Malse makkers,\nHet streampie is helaas weer voorbij :lekkerAppie:");
+                    await SendMessageToChannels("Malse makkers,\nHet streampie is helaas weer voorbij :lekkerAppie:");
                 }
             }
         }
@@ -72,7 +72,7 @@ namespace RichardBot.Discord
             }
             catch (Exception e)
             {
-                logger.Error(e,"Error while starting discord bot",null);
+                logger.Error(e, "Error while starting discord bot", null);
             }
         }
 
@@ -90,7 +90,7 @@ namespace RichardBot.Discord
             await textChannel.SendMessageAsync($"```{message}```");
         }
 
-        public async Task SendMessageToAllChannels(string message = "", Embed embed = null, string file = null)
+        public async Task SendMessageToChannels(string message = "", Embed embed = null, string file = null)
         {
             foreach (ChannelInfo info in config.connectedChannels)
             {
@@ -172,7 +172,10 @@ namespace RichardBot.Discord
                         }
                     case "message":
                         {
-                            await SendMessageToAllChannels(command.ReadString(true));
+                            if (senderUser.Id != config.AdminId)
+                            {
+                                await SendMessageToChannels(command.ReadString(true));
+                            }
                             break;
                         }
                     case "dab":
@@ -235,8 +238,11 @@ namespace RichardBot.Discord
                         }
                     case "broadcastweer":
                         {
-                            var weer = GetWeather();
-                            await SendMessageToAllChannels(":robot:", weer);
+                            if (senderUser.Id != config.AdminId)
+                            {
+                                var weer = GetWeather();
+                                await SendMessageToChannels(":robot:", weer);
+                            }
                             break;
                         }
                 }

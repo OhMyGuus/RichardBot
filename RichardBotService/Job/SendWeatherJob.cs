@@ -19,7 +19,7 @@ namespace RichardBotService.Job
             try
             {
                 logger.Info("Sending dab to channels");
-                await bot.SendMessageToAllChannels("<:lekkerRichard:428292200934146049>", bot.GetWeather());
+                await bot.SendMessageToChannels("<:lekkerRichard:428292200934146049>", bot.GetWeather());
             }
             catch (Exception e)
             {

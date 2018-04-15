@@ -36,7 +36,10 @@ namespace RichardBot.Twitch
             client.OnLog += Client_OnLog;
             client.ChatThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
             client.WhisperThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
+            client.OnLeftChannel += Client_OnLeftChannel;
+            client.OnJoinedChannel += Client_OnJoinedChannel;
         }
+
 
         public async Task Connect()
         {
@@ -62,7 +65,7 @@ namespace RichardBot.Twitch
                 case "!uptime":
                     {
                         var uptime = GetUptime(message.Channel);
-                        client.SendMessage(message.Channel, uptime == null ? $"{message.Channel} is op dit moment niet aan het streamen! lekkerKonkie" : $"Ze zijn al {uptime?.ToString(@"mm:ss")} minuten aan het streamen");
+                        client.SendMessage(message.Channel, uptime == null ? $"{message.Channel} is op dit moment niet aan het streamen! lekkerKonkie" : $"Ze zijn al {uptime?.TotalMinutes} minuten aan het streamen");
                         break;
                     }
                 case "!join":
@@ -131,7 +134,7 @@ namespace RichardBot.Twitch
                     }
                     TimeSpan noHonorTime = info.LastHonor.HasValue ? DateTime.Now - info.LastHonor.Value : uptime.Value;
                     if ((noHonorTime.TotalMinutes > config.HonorTime))
-                        client.SendMessage(channel, $"/me Hey malse makkers,\n Jullie zijn al weer {noHonorTime.ToString(@"%m")} minuten live zonder Richard te eren geef hem even een vingertje lekkerRichard lekkerKonkie");
+                        client.SendMessage(channel, $"/me Hey malse makkers,\n Jullie zijn al weer {noHonorTime.TotalMinutes} minuten live zonder Richard te eren geef hem even een vingertje lekkerRichard lekkerKonkie");
                     info.LastHonor = DateTime.Now;
                 }
             }
@@ -181,6 +184,16 @@ namespace RichardBot.Twitch
         private void Client_OnConnectionError(object sender, TwitchLib.Client.Events.OnConnectionErrorArgs e)
         {
             logger.Trace("Connection error!");
+        }
+
+        private async void Client_OnJoinedChannel(object sender, TwitchLib.Client.Events.OnJoinedChannelArgs e)
+        {
+            await BotWrapper.DiscordBot.sendDebugMessage($"Joined chanenel {e.Channel}");
+        }
+
+        private async void Client_OnLeftChannel(object sender, TwitchLib.Client.Events.OnLeftChannelArgs e)
+        {
+            await BotWrapper.DiscordBot.sendDebugMessage($"Left chanenel {e.Channel}");
         }
 
         private void Client_OnConnected(object sender, TwitchLib.Client.Events.OnConnectedArgs e)

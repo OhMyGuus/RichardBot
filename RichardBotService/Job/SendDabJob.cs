@@ -19,7 +19,7 @@ namespace RichardBotService.Job
             {
                 var bot = BotWrapper.DiscordBot;
                 logger.Info("Sending dab to channels");
-                await BotWrapper.DiscordBot.SendMessageToAllChannels("Joo malse makkers! \n Vergeet niet even te dabben!", null, bot.GetFile("dab"));
+                await BotWrapper.DiscordBot.SendMessageToChannels("Joo malse makkers! \n Vergeet niet even te dabben!", null, bot.GetFile("dab"));
             }
             catch (Exception e)
             {

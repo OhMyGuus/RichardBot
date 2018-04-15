@@ -34,5 +34,9 @@ namespace RichardBot.Discord.Config
         /// The discord channel where debug info needs to be sended to
         /// </summary>
         public ChannelInfo DebugChannel { get; set; } = new ChannelInfo() { GuildId = 433828387354837014, ChannelId = 433828387354837016 };
+        /// <summary>
+        /// The userid of the admin of the discord bot
+        /// </summary>
+        public ulong AdminId { get; set; } = 0;
     }
 }
