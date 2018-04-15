@@ -19,7 +19,7 @@ using DiscordConfig = RichardBot.Discord.Config.DiscordConfig;
 using NLog;
 
 namespace RichardBot.Discord
-{
+{  
     public class DiscordBot : DiscordClientEventHandlers
     {
         private readonly ILogger logger = LogManager.GetCurrentClassLogger();
