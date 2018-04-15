@@ -34,7 +34,8 @@ namespace RichardBot.Twitch
             client.OnConnected += Client_OnConnected;
             client.OnConnectionError += Client_OnConnectionError;
             client.OnLog += Client_OnLog;
-           
+            client.ChatThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
+            client.WhisperThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
         }
 
         public async Task Connect()
@@ -186,6 +187,8 @@ namespace RichardBot.Twitch
         {
             //    client.ChatThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
             logger.Trace("Connected to twitch");
+            client.WhisperThrottler.StartQueue();
+            client.ChatThrottler.StartQueue();
             foreach (var channel in config.JoinedChannels)
             {
                 logger.Trace($"Joining {channel}");
