@@ -18,13 +18,13 @@ namespace RichardBot
         public static BotsConfig BotsConfig;
         public static async Task Init()
         {
-            BotsConfig = BotsConfig.Load("config.json");
             System.IO.Directory.SetCurrentDirectory(System.AppDomain.CurrentDomain.BaseDirectory);
+            BotsConfig = BotsConfig.Load("config.json");
             DiscordBot = new DiscordBot(BotsConfig);
-            DiscordBot.Start().Wait();
+            await DiscordBot.Start();
             TwitchBot = new TwitchBot(BotsConfig);
             await TwitchBot.Connect();
-            await Task.Delay(500);
+
         }
     }
 }

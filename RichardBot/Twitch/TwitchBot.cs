@@ -1,4 +1,5 @@
-﻿using RichardBot.Commands;
+﻿using NLog;
+using RichardBot.Commands;
 using RichardBot.Config;
 using RichardBot.Discord.Events;
 using System;
@@ -15,6 +16,7 @@ namespace RichardBot.Twitch
 {
     public class TwitchBot
     {
+        private readonly ILogger logger = LogManager.GetCurrentClassLogger();
         readonly ConnectionCredentials credentials;
         private TwitchClient client = new TwitchClient();
         private TwitchConfig config => botConfigs.TwitchConfig;
@@ -32,6 +34,7 @@ namespace RichardBot.Twitch
             client.OnConnected += Client_OnConnected;
             client.OnConnectionError += Client_OnConnectionError;
             client.OnLog += Client_OnLog;
+           
         }
 
         public async Task Connect()
@@ -171,21 +174,21 @@ namespace RichardBot.Twitch
         #region log
         private void Client_OnLog(object sender, TwitchLib.Client.Events.OnLogArgs e)
         {
-            Console.WriteLine(e.Data);
+            logger.Trace(e.Data);
         }
 
         private void Client_OnConnectionError(object sender, TwitchLib.Client.Events.OnConnectionErrorArgs e)
         {
-            Console.WriteLine("Connection error!");
+            logger.Trace("Connection error!");
         }
 
         private void Client_OnConnected(object sender, TwitchLib.Client.Events.OnConnectedArgs e)
         {
             //    client.ChatThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
-            Console.WriteLine("Connected to twitch");
+            logger.Trace("Connected to twitch");
             foreach (var channel in config.JoinedChannels)
             {
-                Console.WriteLine($"Joining {channel}");
+                logger.Trace($"Joining {channel}");
                 client.JoinChannel(channel);
             }
         }

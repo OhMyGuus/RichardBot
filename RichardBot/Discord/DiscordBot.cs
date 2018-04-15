@@ -16,10 +16,13 @@ using RichardBot.Commands;
 using RichardBot.Discord.Events;
 using RichardBot.Config;
 using DiscordConfig = RichardBot.Discord.Config.DiscordConfig;
+using NLog;
+
 namespace RichardBot.Discord
 {
     public class DiscordBot : DiscordClientEventHandlers
     {
+        private readonly ILogger logger = LogManager.GetCurrentClassLogger();
         public DiscordSocketClient DiscordClient { get; private set; }
         private string commandPrefix;
         private DiscordConfig config => botsConfig.DiscordConfig;
@@ -52,18 +55,25 @@ namespace RichardBot.Discord
 
         public async Task Start()
         {
-            await DiscordClient.StartAsync();
-            await DiscordClient.LoginAsync(TokenType.User, config.BotToken);
-
-            while (DiscordClient.ConnectionState == global::Discord.ConnectionState.Connecting || DiscordClient.LoginState == LoginState.LoggingIn)
+            try
             {
-                await Task.Delay(5);
-            }
-            commandPrefix = DiscordClient?.CurrentUser?.Mention?.Replace("<@!", "<@");
-            await Task.Delay(500);
+                await DiscordClient.StartAsync();
+                await DiscordClient.LoginAsync(TokenType.User, config.BotToken);
 
-            await sendDebugMessage("De bot is succesvol opgestart!");
-            await DiscordClient.SetGameAsync(config.Game);
+                while (DiscordClient.ConnectionState == global::Discord.ConnectionState.Connecting || DiscordClient.LoginState == LoginState.LoggingIn)
+                {
+                    await Task.Delay(5);
+                }
+                commandPrefix = DiscordClient?.CurrentUser?.Mention?.Replace("<@!", "<@");
+                await Task.Delay(500);
+
+                await sendDebugMessage("De bot is succesvol opgestart!");
+                await DiscordClient.SetGameAsync(config.Game);
+            }
+            catch (Exception e)
+            {
+                logger.Error(e,"Error while starting discord bot",null);
+            }
         }
 
 

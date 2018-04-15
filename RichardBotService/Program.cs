@@ -33,10 +33,8 @@ namespace RichardBotService
 
                     c.Service(factory =>
                     {
-                        Task.Run(async () =>
-                        {
-                            await BotWrapper.Init();
-                        });
+
+                        BotWrapper.Init().Wait(); 
                         QuartzServer server = QuartzServerFactory.CreateServer();
                         server.Initialize().Wait();
                         return server;
