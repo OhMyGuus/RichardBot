@@ -1,6 +1,7 @@
 ﻿using NLog;
 using Quartz;
 using RichardBot;
+using RichardBot.Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace RichardBotService.Job
             {
                 var bot = BotWrapper.DiscordBot;
                 logger.Info("Sending dab to channels");
-                await BotWrapper.DiscordBot.SendMessageToChannels("Joo malse makkers! \n Vergeet niet even te dabben!", null, bot.GetFile("dab"));
+                await BotWrapper.DiscordBot.SendMessageToChannels("Joo malse makkers! \n Vergeet niet even te dabben!", null, bot.GetMeme(MemeType.Dab));
             }
             catch (Exception e)
             {

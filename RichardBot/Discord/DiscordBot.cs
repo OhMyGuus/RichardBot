@@ -23,18 +23,26 @@ namespace RichardBot.Discord
     public class DiscordBot : DiscordClientEventHandlers
     {
         private readonly ILogger logger = LogManager.GetCurrentClassLogger();
+
+        public string GetMeme(object dab)
+        {
+            throw new NotImplementedException();
+        }
+
         public DiscordSocketClient DiscordClient { get; private set; }
         private string commandPrefix;
         private DiscordConfig config => botsConfig.DiscordConfig;
         private BotsConfig botsConfig;
         private Random random = new Random();
-
+        private Dictionary<MemeType, List<string>> pastMemes = new Dictionary<MemeType, List<string>>();
         public DiscordBot(BotsConfig config)
         {
             this.botsConfig = config;
             DiscordClient = new DiscordSocketClient();
             DiscordClient.MessageReceived += MessageReceived;
-            TwitchStatusChanged += DiscordBot_TwitchStatusChanged; ;
+            TwitchStatusChanged += DiscordBot_TwitchStatusChanged;
+            Enum.GetValues(typeof(MemeType)).Cast<MemeType>().ToList().ForEach(i => pastMemes.Add(i, new List<string>()));
+
         }
 
         private async Task DiscordBot_TwitchStatusChanged(TwitchStatusChangedArgs arg)
@@ -52,7 +60,6 @@ namespace RichardBot.Discord
                 }
             }
         }
-
         public async Task Start()
         {
             try
@@ -96,7 +103,7 @@ namespace RichardBot.Discord
             {
                 try
                 {
-                    message = parseEmoji(message);
+                    message = ParseEmoji(message);
                     var Guild = DiscordClient.GetGuild(info.GuildId);
                     var textChannel = Guild.GetTextChannel(info.ChannelId);
                     if ((!string.IsNullOrEmpty(message) || embed != null) && string.IsNullOrEmpty(file))
@@ -178,54 +185,24 @@ namespace RichardBot.Discord
                             }
                             break;
                         }
+                    case "meme":
                     case "dab":
+                    case "vinger":
+                    case "kokhals":
                         {
-
-                            if (Directory.Exists(config.ImagesPath))
+                            var memeType = MemeTypeHelper.FromString(command.Command);
+                            var file = GetMeme(memeType);
+                            if (!string.IsNullOrEmpty(file))
                             {
-                                var dabs = Directory.GetFiles(config.ImagesPath).Where(o => o.Contains("dab")).ToArray();
-                                if (dabs.Length > 0)
-                                {
-                                    var dab = dabs.ElementAt(random.Next(dabs.Length));
-                                    Task.Run(async () => await message.Channel.SendFileAsync(dab));
-                                }
-                                else
-                                {
-                                    await sendDebugMessage(config.ImagesPath + " no memes found found??");
-                                }
+                                Task.Run(async () => await message.Channel.SendFileAsync(file));
                             }
                             else
                             {
-                                await sendDebugMessage(config.ImagesPath + " not found??");
+                                await sendDebugMessage($"image error {command} not found??");
                             }
                             break;
                         }
-                    case "kokhals":
-                        {
-                            if (Directory.Exists(config.ImagesPath))
-                            {
-                                var dabs = Directory.GetFiles(config.ImagesPath).Where(o => o.Contains("kokhals")).ToArray();
-                                if (dabs.Length > 0)
-                                {
-                                    var dab = dabs.ElementAt(random.Next(dabs.Length));
-                                    Task.Run(async () => await message.Channel.SendFileAsync(dab));
-                                }
-                            }
-                            break;
-                        }
-                    case "meme":
-                        {
-                            if (Directory.Exists(config.ImagesPath))
-                            {
-                                var memes = Directory.GetFiles(config.ImagesPath).Where(o => o.Contains("meme")).ToArray();
-                                if (memes.Length > 0)
-                                {
-                                    var meme = memes.ElementAt(random.Next(memes.Length));
-                                    Task.Run(async () => await message.Channel.SendFileAsync(meme));
-                                }
-                            }
-                            break;
-                        }
+
                     case "weer":
                         {
                             var weatherMessage = await message.Channel.SendMessageAsync(":robot:");
@@ -252,15 +229,25 @@ namespace RichardBot.Discord
                 await sendDebugMessage(e.ToString());
             }
         }
-        public string GetFile(string prefix)
+        public string GetMeme(MemeType type)
         {
-            var dabs = Directory.GetFiles(config.ImagesPath).Where(o => o.Contains(prefix + "_")).ToArray();
-            if (dabs.Length > 0)
+            if (Directory.Exists(config.ImagesPath))
             {
-                return dabs.ElementAt(random.Next(dabs.Length));
+                var memesQuery = DirSearch(config.ImagesPath).Where(o => o.Contains($"{type.ToString().ToLower()}"));
+                if (pastMemes[type].Count >= memesQuery.Count())
+                {
+                    pastMemes[type].Clear();
+                }
+
+                var m = memesQuery.Where(o => !pastMemes[type].Contains(o)).ToArray();
+                return m.Length > 0 ? m[random.Next(m.Length)] : null;
             }
-            return "";
+            else
+            {
+                return null;
+            }
         }
+
         public Embed GetWeather()
         {
             // http://weerlive.nl/api/json-10min.php?locatie=52.0910879,5.1124231
@@ -294,17 +281,34 @@ namespace RichardBot.Discord
                 return null;
             }
         }
-        private string parseEmoji(string input)
+        private string ParseEmoji(string input)
         {
             input = input.Replace(":lekkerRichard:", "<:lekkerRichard:428292200934146049>");
             input = input.Replace(":lekkerAppie:", "<:lekkerappie:323177514648469514>");
             input = input.Replace(":lekkerSicko:", "<:lekkerSicko:397984457145188362>");
             return input;
         }
+        private List<String> DirSearch(string sDir)
+        {
+            List<String> files = new List<String>();
+            try
+            {
+                foreach (string f in Directory.GetFiles(sDir))
+                {
+                    files.Add(f);
+                }
+                foreach (string d in Directory.GetDirectories(sDir))
+                {
+                    files.AddRange(DirSearch(d));
+                }
+            }
+            catch (System.Exception excpt)
+            {
+
+            }
+            return files;
+        }
         #endregion
-
-
-
     }
 }
 

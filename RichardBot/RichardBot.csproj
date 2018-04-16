@@ -138,6 +138,7 @@
     <Compile Include="Discord\DiscordBot.cs" />
     <Compile Include="Discord\Events\DiscordClientEventHandlers.cs" />
     <Compile Include="Discord\Events\TwitchStatusChangedArgs.cs" />
+    <Compile Include="Discord\MemeType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Twitch\BotChannelInfo.cs" />
