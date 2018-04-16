@@ -34,8 +34,8 @@ namespace RichardBot.Twitch
             client.OnConnected += Client_OnConnected;
             client.OnConnectionError += Client_OnConnectionError;
             client.OnLog += Client_OnLog;
-            client.ChatThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
-            client.WhisperThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
+            //client.ChatThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
+            //client.WhisperThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
             client.OnLeftChannel += Client_OnLeftChannel;
             client.OnJoinedChannel += Client_OnJoinedChannel;
         }
@@ -65,7 +65,7 @@ namespace RichardBot.Twitch
                 case "!uptime":
                     {
                         var uptime = GetUptime(message.Channel);
-                        client.SendMessage(message.Channel, uptime == null ? $"{message.Channel} is op dit moment niet aan het streamen! lekkerKonkie" : $"Ze zijn al {uptime?.TotalMinutes} minuten aan het streamen");
+                        client.SendMessage(message.Channel, uptime == null ? $"{message.Channel} is op dit moment niet aan het streamen! lekkerKonkie" : $"{message.Channel} is al {(int)(uptime?.TotalMinutes ?? 0)} minuten aan het streamen");
                         break;
                     }
                 case "!join":
@@ -89,26 +89,39 @@ namespace RichardBot.Twitch
                         client.SendMessage(message.Channel, $"lekkerRichard lekkerRichard lekkerRichard lekkerSicko {k++}");
                         break;
                     }
-                default:
+                case "avond":
                     {
-                        //Need to move stuff around to make this less italian
                         if (!botEveningTimeout.ContainsKey(message.UserId) || (DateTime.Now - botEveningTimeout[message.UserId]).TotalMinutes > config.EveningTimeout)
                         {
-                            if (message.Message.ToLower().Contains("avond"))
-                            {
-                                botEveningTimeout[message.UserId] = DateTime.Now;
-                                client.SendMessage(message.Channel, $"/me Avond @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
-                            }
-                            else if (message.Message.ToLower().Contains("middag"))
-                            {
-                                botEveningTimeout[message.UserId] = DateTime.Now;
-                                client.SendMessage(message.Channel, $"/me Middag @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
-                            }
+                            botEveningTimeout[message.UserId] = DateTime.Now;
+                            client.SendMessage(message.Channel, $"/me Avond @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
+                        }
+                        break;
+                    }
+                case "middag":
+                    {
+                        if (!botEveningTimeout.ContainsKey(message.UserId) || (DateTime.Now - botEveningTimeout[message.UserId]).TotalMinutes > config.EveningTimeout)
+                        {
+                            botEveningTimeout[message.UserId] = DateTime.Now;
+                            client.SendMessage(message.Channel, $"/me Middag @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        //Need to move stuff around to make this less italian rrly need to 
+
+                        if (message.Message.ToLower().Contains(" avond") || message.Message.ToLower().Contains("avond "))
+                        {
+                            goto case "avond";
+                        }
+                        else if (message.Message.ToLower().Contains(" middag") || message.Message.ToLower().Contains("middag "))
+                        {
+                            goto case "middag";
                         }
                         break;
                     }
             }
-
         }
         public async Task CheckDabs()
         {
@@ -134,8 +147,10 @@ namespace RichardBot.Twitch
                     }
                     TimeSpan noHonorTime = info.LastHonor.HasValue ? DateTime.Now - info.LastHonor.Value : uptime.Value;
                     if ((noHonorTime.TotalMinutes > config.HonorTime))
-                        client.SendMessage(channel, $"/me Hey malse makkers,\n Jullie zijn al weer {noHonorTime.TotalMinutes} minuten live zonder Richard te eren geef hem even een vingertje lekkerRichard lekkerKonkie");
-                    info.LastHonor = DateTime.Now;
+                    {
+                        client.SendMessage(channel, $"/me Hey malse makkers,\n Jullie zijn al weer {(int)noHonorTime.TotalMinutes} minuten live zonder Richard te eren geef hem even een vingertje lekkerRichard lekkerKonkie");
+                        info.LastHonor = DateTime.Now;
+                    }
                 }
             }
             //SendMessage("Vergeten jullie niet Richard te eren door een dab te doen lekkerRichard lekkerKonkie");
@@ -200,8 +215,8 @@ namespace RichardBot.Twitch
         {
             //    client.ChatThrottler = new MessageThrottler(client, 20, TimeSpan.FromSeconds(30));
             logger.Trace("Connected to twitch");
-            client.WhisperThrottler.StartQueue();
-            client.ChatThrottler.StartQueue();
+            //client.WhisperThrottler.StartQueue();
+            //client.ChatThrottler.StartQueue();
             foreach (var channel in config.JoinedChannels)
             {
                 logger.Trace($"Joining {channel}");

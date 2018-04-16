@@ -29,7 +29,7 @@ namespace RichardBot.Discord.Config
         /// <summary>
         /// Channels where the bot should notify the channels when they go live or stop broadcasting
         /// </summary>
-        public List<string> TwitchAlertChannels { get; set; } = new List<string>() { "lekkerspelen" };
+        public List<string> TwitchAlertChannels { get; set; } = new List<string>();
         /// <summary>
         /// The discord channel where debug info needs to be sended to
         /// </summary>

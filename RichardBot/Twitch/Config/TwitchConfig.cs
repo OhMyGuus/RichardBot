@@ -27,7 +27,7 @@ namespace RichardBot.Twitch
         /// <summary>
         /// List of channels which the bot is connected to, he is always connected to his own channel tho
         /// </summary>
-        public List<string> JoinedChannels { get; set; } = new List<string>() { "lekkerspelen" };
+        public List<string> JoinedChannels { get; set; } = new List<string>();
         /// <summary>
         /// Time when the streamer needs to Honor Richard
         /// </summary>
