@@ -6,5 +6,6 @@ namespace RichardBot.Twitch
     {
         public bool IsLive { get; internal set; }
         public DateTime? LastHonor { get; internal set; }
+       
     }
 }
