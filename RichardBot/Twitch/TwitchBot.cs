@@ -110,12 +110,12 @@ namespace RichardBot.Twitch
                 default:
                     {
                         //Need to move stuff around to make this less italian rrly need to 
-
-                        if (message.Message.ToLower().Contains(" avond") || message.Message.ToLower().Contains("avond "))
+                       
+                        if (message.Message.ToLower().Contains(" avond") || message.Message.ToLower().Contains(" avond "))
                         {
                             goto case "avond";
                         }
-                        else if (message.Message.ToLower().Contains(" middag") || message.Message.ToLower().Contains("middag "))
+                        else if (message.Message.ToLower().Contains(" middag") || message.Message.ToLower().Contains(" middag "))
                         {
                             goto case "middag";
                         }
