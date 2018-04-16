@@ -24,6 +24,7 @@ namespace RichardBot.Discord
                 case "dab":
                     return MemeType.Dab;
                 case "vinger"://dutch localisation
+                case "vingertje":
                 case "finger":
                     return MemeType.Vinger;
                 case "kokhals":

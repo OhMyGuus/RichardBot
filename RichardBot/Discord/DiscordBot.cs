@@ -222,6 +222,7 @@ namespace RichardBot.Discord
                             }
                             break;
                         }
+                  
                 }
             }
             catch (Exception e)
@@ -240,7 +241,9 @@ namespace RichardBot.Discord
                 }
 
                 var m = memesQuery.Where(o => !pastMemes[type].Contains(o)).ToArray();
-                return m.Length > 0 ? m[random.Next(m.Length)] : null;
+                var meme = m.Length > 0 ? m[random.Next(m.Length)] : null;
+                pastMemes[type].Add(meme);
+                return meme;
             }
             else
             {

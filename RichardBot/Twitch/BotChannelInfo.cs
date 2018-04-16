@@ -4,8 +4,8 @@ namespace RichardBot.Twitch
 {
     internal class BotChannelInfo
     {
-        public bool IsLive { get; internal set; }
-        public DateTime? LastHonor { get; internal set; }
+        public bool IsLive { get; set; } = false;
+        public DateTime? LastHonor { get;  set; }
        
     }
 }

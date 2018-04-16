@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api;
+using TwitchLib.Api.Models.v5.Subscriptions;
 using TwitchLib.Client;
 using TwitchLib.Client.Models;
 using TwitchLib.Client.Services;
@@ -47,111 +48,124 @@ namespace RichardBot.Twitch
             client.Connect();
         }
         int k = 0;
-        private void Client_OnMessageReceived(object sender, TwitchLib.Client.Events.OnMessageReceivedArgs e)
+        private async void Client_OnMessageReceived(object sender, TwitchLib.Client.Events.OnMessageReceivedArgs e)
         {
-            if (e.ChatMessage.Username == client.TwitchUsername)
+            try
             {
-                return;
-            }
-            CommandMessage command = new CommandMessage(e.ChatMessage.Message, true, $"@{config.BotUsername.ToLower()}");
-            ChatMessage message = e.ChatMessage;
-            string channelNameL = message.Channel.ToLower();
-            ChannelConfig channelConfig = config.JoinedChannels.ContainsKey(message.Channel.ToLower()) ? config.JoinedChannels[channelNameL] : new ChannelConfig();
-            if (channelConfig.MentionOnly && !command.Mentioned)
-            {
-                return;
-            }
+                if (e.ChatMessage.Username == client.TwitchUsername)
+                {
+                    return;
+                }
+                CommandMessage command = new CommandMessage(e.ChatMessage.Message, true, $"@{config.BotUsername.ToLower()}");
+                ChatMessage message = e.ChatMessage;
+                string channelNameL = message.Channel.ToLower();
+                ChannelConfig channelConfig = config.JoinedChannels.ContainsKey(message.Channel.ToLower()) ? config.JoinedChannels[channelNameL] : new ChannelConfig();
+                if (channelConfig.MentionOnly && !command.Mentioned)
+                {
+                    return;
+                }
 
-            switch (command.Command.ToLower())
-            {
-                case "!uptime":
-                    {
-                        var uptime = GetUptime(message.Channel);
-                        client.SendMessage(message.Channel, uptime == null ? $"{message.Channel} is op dit moment niet aan het streamen! lekkerKonkie" : $"{message.Channel} is al {(int)(uptime?.TotalMinutes ?? 0)} minuten aan het streamen");
-                        break;
-                    }
-                case "!join":
-                    {
-                        string channelName = command.ReadString();
-                        if (!string.IsNullOrEmpty(channelName) && !config.JoinedChannels.ContainsKey(channelName.ToLower()))
+                switch (command.Command.ToLower())
+                {
+                    case "!uptime":
                         {
-                            var channel = api.Users.v5.GetUserByNameAsync(channelName).Result.Matches;
-                            if (channel != null && channel.Length >= 1)
+                            var uptime = GetUptime(message.Channel);
+                            client.SendMessage(message.Channel, uptime == null ? $"{message.Channel} is op dit moment niet aan het streamen! lekkerKonkie" : $"{message.Channel} is al {(int)(uptime?.TotalMinutes ?? 0)} minuten aan het streamen");
+                            break;
+                        }
+                    case "!join":
+                        {
+                            string channelName = command.ReadString();
+                            if (!string.IsNullOrEmpty(channelName) && !config.JoinedChannels.ContainsKey(channelName.ToLower()))
                             {
-                                config.JoinedChannels.Add(channelName.ToLower(), new ChannelConfig());
-                                client.JoinChannel(channelName);
-                                client.SendMessage(message.Channel, $"lekkerRichard ik kom naar het kanaal {channelName} lekkerSicko ");
+                                var channel = api.Users.v5.GetUserByNameAsync(channelName).Result.Matches;
+                                if (channel != null && channel.Length >= 1)
+                                {
+                                    config.JoinedChannels.Add(channelName.ToLower(), new ChannelConfig());
+                                    client.JoinChannel(channelName);
+                                    client.SendMessage(message.Channel, $"lekkerRichard ik kom naar het kanaal {channelName} lekkerSicko ");
+                                    botConfigs.Save();
+                                }
+                            }
+                            break;
+                        }
+                    case "lekkerrichard":
+                        {
+                            if (channelConfig.RichardEmoteEnabled)
+                            {
+                                client.SendMessage(message.Channel, $"lekkerRichard lekkerRichard lekkerRichard lekkerSicko {k++}");
+                            }
+                            break;
+                        }
+                    case "avond":
+                        {
+                            if (channelConfig.EveningEnabled && (!botEveningTimeout.ContainsKey(message.UserId) || (DateTime.Now - botEveningTimeout[message.UserId]).TotalMinutes > channelConfig.EveningTimeout))
+                            {
+                                botEveningTimeout[message.UserId] = DateTime.Now;
+                                client.SendMessage(message.Channel, $"/me Avond @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
+                            }
+                            break;
+                        }
+                    case "middag":
+                        {
+                            if (channelConfig.EveningEnabled && !botEveningTimeout.ContainsKey(message.UserId) || (DateTime.Now - botEveningTimeout[message.UserId]).TotalMinutes > channelConfig.EveningTimeout)
+                            {
+                                botEveningTimeout[message.UserId] = DateTime.Now;
+                                client.SendMessage(message.Channel, $"/me Middag @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
+                            }
+                            break;
+                        }
+                    case "!enable":
+                    case "!disable":
+                        {
+                            if (IsAdmin(message))
+                            {
+                                switch (command.ReadString().ToLower())
+                                {
+                                    case "mention":
+                                        {
+                                            channelConfig.MentionOnly = command.Command.ToLower() == "!enable";
+                                            SendMessage($"Ik reageer " + (channelConfig.MentionOnly ? $"nu alleen op @{client.TwitchUsername}" : "nu gewoon op alle chat berichten"), message.Channel);
+                                            break;
+                                        }
+                                    case "emote":
+                                        {
+                                            channelConfig.RichardEmoteEnabled = command.Command.ToLower() == "!enable";
+                                            SendMessage($"Ik reageer " + (channelConfig.RichardEmoteEnabled ? "weer op lekkerRichard lekkerSicko" : "niet meer op lekkerRichard lekkerAppie"), message.Channel);
+                                            break;
+                                        }
+                                    case "evening":
+                                    case "avond":
+                                        {
+                                            channelConfig.EveningEnabled = command.Command.ToLower() == "!enable";
+                                            SendMessage($"Ik reageer " + (channelConfig.EveningEnabled ? "weer op 'avond' lekkerRichard" : "niet meer op 'avond' lekkerAppie"), message.Channel);
+                                            break;
+                                        }
+                                }
                                 botConfigs.Save();
                             }
+                            break;
                         }
-                        break;
-                    }
-                case "lekkerrichard":
-                    {
-                        if (channelConfig.RichardEmoteEnabled)
-                        {
-                            client.SendMessage(message.Channel, $"lekkerRichard lekkerRichard lekkerRichard lekkerSicko {k++}");
-                        }
-                        break;
-                    }
-                case "avond":
-                    {
-                        if (channelConfig.EveningEnabled && (!botEveningTimeout.ContainsKey(message.UserId) || (DateTime.Now - botEveningTimeout[message.UserId]).TotalMinutes > channelConfig.EveningTimeout))
-                        {
-                            botEveningTimeout[message.UserId] = DateTime.Now;
-                            client.SendMessage(message.Channel, $"/me Avond @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
-                        }
-                        break;
-                    }
-                case "middag":
-                    {
-                        if (channelConfig.EveningEnabled && !botEveningTimeout.ContainsKey(message.UserId) || (DateTime.Now - botEveningTimeout[message.UserId]).TotalMinutes > channelConfig.EveningTimeout)
-                        {
-                            botEveningTimeout[message.UserId] = DateTime.Now;
-                            client.SendMessage(message.Channel, $"/me Middag @{e.ChatMessage.DisplayName} malse makker! lekkerRichard lekkerDag");
-                        }
-                        break;
-                    }
-                case "!enable":
-                case "!disable":
-                    {
-                        if (IsAdmin(message))
-                        {
-                            switch (command.ReadString().ToLower())
-                            {
-                                case "emote":
-                                    {
-                                        channelConfig.RichardEmoteEnabled = !channelConfig.RichardEmoteEnabled;
-                                        SendMessage($"Ik reageer " + (channelConfig.RichardEmoteEnabled? "weer" : "niet meer") + " op lekkerRichard lekkerAppie", message.Channel);
-                                        break;
-                                    }
-                                case "evening":
-                                case "avond":
-                                    {
-                                        channelConfig.EveningEnabled = !channelConfig.EveningEnabled;
-                                        SendMessage($"Ik reageer " + (channelConfig.EveningEnabled ? "Weer" : "niet meer") + " op avond lekkerAppie",message.Channel);
-                                        break;
-                                    }
-                            }
-                            botConfigs.Save();
-                        }
-                        break;
-                    }
-                
-                default:
-                    {
-                        //Need to move stuff around to make this less italian rrly need to 
 
-                        if (message.Message.ToLower().Contains(" avond") || message.Message.ToLower().Contains(" avond "))
+                    default:
                         {
-                            goto case "avond";
+                            //Need to move stuff around to make this less italian rrly need to 
+
+                            if (message.Message.ToLower().Contains(" avond") || message.Message.ToLower().Contains(" avond "))
+                            {
+                                goto case "avond";
+                            }
+                            else if (message.Message.ToLower().Contains(" middag") || message.Message.ToLower().Contains(" middag "))
+                            {
+                                goto case "middag";
+                            }
+                            break;
                         }
-                        else if (message.Message.ToLower().Contains(" middag") || message.Message.ToLower().Contains(" middag "))
-                        {
-                            goto case "middag";
-                        }
-                        break;
-                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await BotWrapper.DiscordBot.sendDebugMessage(ex.ToString());
             }
         }
         private bool IsAdmin(ChatMessage message)
@@ -168,7 +182,7 @@ namespace RichardBot.Twitch
                 var uptime = GetUptime(channel.Channel);
                 if (!uptime.HasValue)
                 {
-                   if (info.IsLive)
+                    if (info.IsLive)
                     {
                         BotWrapper.DiscordBot.OnTwitchStatusChanged(new TwitchStatusChangedArgs(channel.Channel, false));
                     }
@@ -181,7 +195,9 @@ namespace RichardBot.Twitch
                     {
                         BotWrapper.DiscordBot.OnTwitchStatusChanged(new TwitchStatusChangedArgs(channel.Channel, true, uptime));
                         info.IsLive = true;
+                        info.LastHonor = DateTime.Now;
                     }
+
                     TimeSpan noHonorTime = info.LastHonor.HasValue ? DateTime.Now - info.LastHonor.Value : uptime.Value;
                     if ((noHonorTime.TotalMinutes > channelConfig.HonorTime))
                     {
@@ -204,7 +220,6 @@ namespace RichardBot.Twitch
                 return botChannelInfos[channel.ToLower()];
             }
         }
-
         public TimeSpan? GetUptime(string channel)
         {
             var user = api.Users.v5.GetUserByNameAsync(channel).Result.Matches.FirstOrDefault();

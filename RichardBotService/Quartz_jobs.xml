@@ -35,7 +35,7 @@
       <recover>false</recover>
     </job>
 
-    <trigger>
+    <!--<trigger>
       <cron>
         <name>Send the weather evrey day</name>
         <group>Discord</group>
@@ -82,6 +82,6 @@
         <job-name>SendWeatherJob</job-name>
         <job-group>Discord</job-group>
       </simple>
-    </trigger >
+    </trigger >-->
   </schedule>
 </job-scheduling-data>
